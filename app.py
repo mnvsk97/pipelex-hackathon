@@ -1,176 +1,103 @@
-"""Streamlit UI for Social Media Content Generator."""
-
-import asyncio
-import sys
-from pathlib import Path
-
-# Add current directory to path
-sys.path.insert(0, str(Path(__file__).parent))
+"""Multi-page Streamlit app for Social Media Content Generator."""
 
 import streamlit as st
-from pipelex.pipelex import Pipelex
-from pipelex.pipeline.execute import execute_pipeline
 
-from social_content.social_content_struct import CompanyInput, SocialMediaContent
+st.set_page_config(
+    page_title="Social Media Suite",
+    page_icon="🚀",
+    layout="wide",
+)
 
+# Custom CSS
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #1f77b4;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    .sub-header {
+        font-size: 1.2rem;
+        text-align: center;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    .feature-card {
+        background-color: rgba(240, 242, 246, 0.1);
+        border: 1px solid rgba(128, 128, 128, 0.3);
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        color: inherit;
+    }
+    .feature-card h3 {
+        color: #1f77b4;
+        margin-bottom: 0.5rem;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Initialize Pipelex (only once)
-@st.cache_resource
-def init_pipelex():
-    """Initialize Pipelex."""
-    return Pipelex.make()
+# Title
+st.markdown('<div class="main-header">🚀 Social Media Suite</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">AI-Powered Content Generation & Analytics</div>', unsafe_allow_html=True)
 
+# Introduction
+st.markdown("""
+Welcome to the Social Media Suite! This powerful tool helps you create and analyze social media content across multiple platforms.
+""")
 
-init_pipelex()
+# Features
+col1, col2 = st.columns(2)
 
-
-async def generate_content_async(company_name: str, topic: str, brand_voice: str) -> SocialMediaContent:
-    """Generate social media content asynchronously."""
-    company_input = CompanyInput(
-        company_name=company_name,
-        topic=topic,
-        brand_voice=brand_voice
-    )
-    
-    pipe_output = await execute_pipeline(
-        pipe_code="generate_social_content",
-        inputs={
-            "company_input": {
-                "concept": "social_content.CompanyInput",
-                "content": company_input,
-            }
-        },
-    )
-    
-    return pipe_output.main_stuff_as(content_type=SocialMediaContent)
-
-
-def generate_content(company_name: str, topic: str, brand_voice: str) -> SocialMediaContent:
-    """Synchronous wrapper for async content generation."""
-    return asyncio.run(generate_content_async(company_name, topic, brand_voice))
-
-
-# Streamlit UI
-st.set_page_config(page_title="Social Media Content Generator", page_icon="🚀", layout="wide")
-
-st.title("🚀 Social Media Content Generator")
-st.markdown("Generate Instagram and Twitter content based on competitor research")
-
-# Sidebar for inputs
-with st.sidebar:
-    st.header("📝 Input Details")
-    
-    company_name = st.text_input(
-        "Company Name",
-        placeholder="e.g., TechFlow AI",
-        help="Enter your company name"
-    )
-    
-    topic = st.text_area(
-        "Content Topic",
-        placeholder="e.g., How AI is transforming customer service",
-        help="What do you want to post about?",
-        height=100
-    )
-    
-    brand_voice = st.selectbox(
-        "Brand Voice",
-        ["professional", "casual", "playful", "authoritative", "friendly", "inspirational"],
-        help="Choose your brand's tone"
-    )
-    
-    st.markdown("---")
-    
-    generate_button = st.button("🎨 Generate Content", type="primary", use_container_width=True)
-
-# Main content area
-if generate_button:
-    if not company_name or not topic:
-        st.error("⚠️ Please fill in both Company Name and Content Topic")
-    else:
-        with st.spinner("🔍 Researching competitors and generating content..."):
-            try:
-                result = generate_content(company_name, topic, brand_voice)
-                
-                # Create tabs for different platforms
-                tab1, tab2 = st.tabs(["📸 Instagram", "🐦 Twitter"])
-                
-                with tab1:
-                    st.subheader("Instagram Post")
-                    
-                    col1, col2 = st.columns([1, 1])
-                    
-                    with col1:
-                        st.markdown("**🎨 Image Prompt**")
-                        st.info(result.instagram.image_prompt)
-                        st.caption("Use this prompt with an AI image generator like DALL-E, Midjourney, or Stable Diffusion")
-                    
-                    with col2:
-                        st.markdown("**✍️ Caption**")
-                        st.text_area(
-                            "Caption",
-                            value=result.instagram.caption,
-                            height=150,
-                            label_visibility="collapsed"
-                        )
-                        
-                        st.markdown("**#️⃣ Hashtags**")
-                        st.code(result.instagram.hashtags, language=None)
-                
-                with tab2:
-                    st.subheader("Twitter Post")
-                    
-                    col1, col2 = st.columns([1, 1])
-                    
-                    with col1:
-                        st.markdown("**🎨 Image Prompt**")
-                        st.info(result.twitter.image_prompt)
-                        st.caption("Use this prompt with an AI image generator")
-                    
-                    with col2:
-                        st.markdown("**✍️ Tweet**")
-                        tweet_length = len(result.twitter.tweet_text)
-                        st.text_area(
-                            "Tweet",
-                            value=result.twitter.tweet_text,
-                            height=100,
-                            label_visibility="collapsed"
-                        )
-                        st.caption(f"Character count: {tweet_length}/280")
-                
-                st.success("✅ Content generated successfully!")
-                
-            except Exception as e:
-                st.error(f"❌ Error generating content: {str(e)}")
-                st.exception(e)
-
-else:
-    # Show placeholder when no content is generated
-    st.info("👈 Fill in the details in the sidebar and click 'Generate Content' to get started!")
-    
-    st.markdown("### How it works:")
+with col1:
     st.markdown("""
-    1. **Enter your company details** - Tell us about your company and what you want to post about
-    2. **Choose your brand voice** - Select the tone that matches your brand
-    3. **Generate content** - Our AI will:
-       - Research your top 5 competitors' social media strategies
-       - Analyze what makes their content engaging
-       - Create unique content tailored to your brand
-       - Generate image prompts and captions for Instagram and Twitter
-    """)
-    
-    st.markdown("### Example:")
-    with st.expander("See an example"):
-        st.markdown("""
-**Company Name:** TechFlow AI  
-**Topic:** How AI is transforming customer service  
-**Brand Voice:** Professional but friendly
+    <div class="feature-card">
+        <h3>📝 Content Generation</h3>
+        <p>Create professional social media content with AI:</p>
+        <ul>
+            <li>🔍 Competitor research & analysis</li>
+            <li>📸 Instagram posts (3 variations)</li>
+            <li>🐦 Twitter/X optimized posts</li>
+            <li>💼 LinkedIn professional content</li>
+            <li>🎨 AI-generated images</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
-This will generate:
-- 📸 Instagram post with detailed image prompt, engaging caption, and relevant hashtags
-- 🐦 Twitter post with image prompt and punchy tweet text
-        """)
+with col2:
+    st.markdown("""
+    <div class="feature-card">
+        <h3>📊 Post Analysis</h3>
+        <p>Analyze your social media performance:</p>
+        <ul>
+            <li>📈 KPI calculations & metrics</li>
+            <li>🎯 Benchmark comparisons</li>
+            <li>💡 Performance diagnostics</li>
+            <li>✨ AI-powered recommendations</li>
+            <li>📋 Executive summaries</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Getting Started
+st.markdown("---")
+st.markdown("## 🚀 Getting Started")
+
+st.markdown("""
+Choose a page from the sidebar to get started:
+
+1. **Content Generation** - Create new social media content with AI assistance
+2. **Post Analysis** - Analyze existing posts and get actionable insights
+
+Each tool is powered by advanced AI pipelines built with Pipelex.
+""")
 
 # Footer
 st.markdown("---")
-st.caption("Built with Pipelex 🚀 | Powered by AI")
+st.markdown("""
+<div style="text-align: center; color: #666; padding: 2rem;">
+    Built with ❤️ using Streamlit & Pipelex
+</div>
+""", unsafe_allow_html=True)

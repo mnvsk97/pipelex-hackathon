@@ -1,4 +1,4 @@
-"""Enhanced Streamlit UI for Social Media Content Generator with progress tracking and audio."""
+"""Content Generation page - moved from app_v3.py"""
 
 import asyncio
 import streamlit as st
@@ -9,17 +9,18 @@ from social_content.social_content_struct import (
     SocialMediaContent,
     MarketResearch,
 )
+from pipelex.core.stuffs.image_content import ImageContent
 
 import os
-os.environ["REPLICATE_API_TOKEN"]=""
+os.environ["REPLICATE_API_TOKEN"] = ""
 
 st.set_page_config(
-    page_title="Social Media Content Generator",
-    page_icon="🚀",
+    page_title="Content Generation",
+    page_icon="📝",
     layout="wide",
 )
 
-# Custom CSS - Fixed for dark mode compatibility
+# Custom CSS
 st.markdown("""
 <style>
     .main-header {
@@ -63,10 +64,6 @@ st.markdown("""
         margin: 1rem 0;
         color: inherit;
     }
-    /* Ensure text is visible in both light and dark modes */
-    .stMarkdown, .stText {
-        color: inherit;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -78,7 +75,7 @@ def init_pipelex():
 pipelex = init_pipelex()
 
 # Title
-st.markdown('<div class="main-header">🚀 Social Media Content Generator</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">📝 Social Media Content Generator</div>', unsafe_allow_html=True)
 
 # Sidebar - Inputs
 with st.sidebar:
@@ -109,7 +106,6 @@ if generate_button:
     if not company_name or not topic:
         st.error("⚠️ Please fill in all required fields!")
     else:
-        # Simplified progress tracking
         progress_bar = st.progress(0)
         status_text = st.empty()
         
@@ -153,15 +149,14 @@ if generate_button:
             research_stuff = working_memory.get_stuff("research")
             research: MarketResearch = research_stuff.content
             
-            # Get individual content pieces directly from working memory
+            # Get individual content pieces
             instagram_stuff = working_memory.get_stuff("instagram_posts")
             twitter_stuff = working_memory.get_stuff("twitter")
             linkedin_stuff = working_memory.get_stuff("linkedin_posts")
             
-            # Extract lists properly from ListContent
+            # Extract lists properly
             from pipelex.core.stuffs.list_content import ListContent
             
-            # Handle ListContent properly
             if isinstance(instagram_stuff.content, ListContent):
                 instagram_posts = instagram_stuff.content.items
             else:
@@ -172,7 +167,7 @@ if generate_button:
             else:
                 linkedin_posts = [linkedin_stuff.content]
             
-            # Convert Pydantic models to dicts for proper validation
+            # Convert to dicts
             result = SocialMediaContent(
                 instagram=[post.model_dump() for post in instagram_posts],
                 twitter=twitter_stuff.content.model_dump(),
@@ -188,7 +183,6 @@ if generate_button:
                 st.markdown(f"**Analyzed {len(research.insights)} top competitors in your industry**")
                 st.markdown('</div>', unsafe_allow_html=True)
                 
-                # Show competitors
                 st.markdown("#### 📊 Competitors Analyzed:")
                 cols = st.columns(min(3, len(research.insights)))
                 for idx, insight in enumerate(research.insights):
@@ -200,24 +194,21 @@ if generate_button:
                         </div>
                         """, unsafe_allow_html=True)
                 
-                # Key trends
                 with st.expander("🔑 Key Trends & Recommendations", expanded=False):
                     st.markdown(f"**Key Trends:**\n{research.key_trends}")
                     st.markdown(f"**Recommendations:**\n{research.recommendations}")
             
-            # Generate images using Replicate
+            # Generate images
             status_text.markdown('<div class="step-header">🎨 Generating AI Images...</div>', unsafe_allow_html=True)
             progress_bar.progress(70)
             
-            # Initialize session state for images
             st.session_state['instagram_images'] = []
             st.session_state['linkedin_images'] = []
-            st.session_state['image_error'] = None
             
             try:
                 import replicate
                 
-                # Generate Instagram images (first 2 variations only)
+                # Generate Instagram images
                 instagram_images = []
                 for idx in range(min(2, len(result.instagram))):
                     post = result.instagram[idx]
@@ -244,7 +235,7 @@ if generate_button:
                 st.session_state['instagram_images'] = instagram_images
                 progress_bar.progress(85)
                 
-                # Generate LinkedIn images (first variation only)
+                # Generate LinkedIn images
                 linkedin_images = []
                 if len(result.linkedin) > 0:
                     post = result.linkedin[0]
@@ -271,7 +262,6 @@ if generate_button:
                 st.session_state['linkedin_images'] = linkedin_images
                 
             except Exception as e:
-                st.session_state['image_error'] = str(e)
                 st.error(f"Image generation error: {str(e)}")
             
             progress_bar.progress(100)
@@ -293,53 +283,23 @@ if generate_button:
                         
                         with col1:
                             if post.image_prompt and post.image_prompt.lower() != "none" and post.image_prompt.strip():
-                                # Use generated image if available
                                 instagram_images = st.session_state.get('instagram_images', [])
                                 if instagram_images and idx <= len(instagram_images):
-                                    st.image(instagram_images[idx-1].url, 
-                                            caption=f"AI Generated Image {idx}")
+                                    st.image(instagram_images[idx-1].url, caption=f"AI Generated Image {idx}")
                                 else:
-                                    st.image("https://via.placeholder.com/400x400?text=Generating...", 
-                                            caption=f"Image for Variation {idx}")
+                                    st.image("https://via.placeholder.com/400x400?text=Generating...", caption=f"Image for Variation {idx}")
                                 
                                 st.caption("🎨 Image Prompt:")
-                                st.text_area(
-                                    f"Image prompt {idx}",
-                                    post.image_prompt,
-                                    height=100,
-                                    key=f"ig_img_{idx}",
-                                    label_visibility="collapsed"
-                                )
+                                st.text_area(f"Image prompt {idx}", post.image_prompt, height=100, key=f"ig_img_{idx}", label_visibility="collapsed")
                             else:
                                 st.info("📝 Text-only post (no image)")
                         
                         with col2:
                             st.markdown("**Caption:**")
-                            caption = st.text_area(
-                                f"Caption {idx}",
-                                post.caption,
-                                height=120,
-                                key=f"ig_cap_{idx}",
-                                label_visibility="collapsed"
-                            )
+                            st.text_area(f"Caption {idx}", post.caption, height=120, key=f"ig_cap_{idx}", label_visibility="collapsed")
                             
                             st.markdown("**Hashtags:**")
-                            hashtags = st.text_input(
-                                f"Hashtags {idx}",
-                                post.hashtags,
-                                key=f"ig_hash_{idx}",
-                                label_visibility="collapsed"
-                            )
-                            
-                            col_a, col_b = st.columns(2)
-                            with col_a:
-                                if st.button(f"📋 Copy Caption", key=f"copy_ig_{idx}"):
-                                    st.success("Copied to clipboard!")
-                            
-                            with col_b:
-                                if generate_audio and post.image_prompt and post.image_prompt.lower() != "none":
-                                    if st.button(f"🎵 Generate Audio", key=f"audio_ig_{idx}"):
-                                        st.info("🎵 Audio generation coming soon! (Replicate integration)")
+                            st.text_input(f"Hashtags {idx}", post.hashtags, key=f"ig_hash_{idx}", label_visibility="collapsed")
             
             # Twitter Tab
             with tab2:
@@ -348,41 +308,24 @@ if generate_button:
                 col1, col2 = st.columns([1, 2])
                 
                 with col1:
-                    # Twitter uses first Instagram image
                     instagram_images = st.session_state.get('instagram_images', [])
                     if instagram_images:
                         st.image(instagram_images[0].url, caption="AI Generated Twitter Image")
                     else:
-                        st.image("https://via.placeholder.com/400x400?text=Generating...", 
-                                caption="Twitter Image")
+                        st.image("https://via.placeholder.com/400x400?text=Generating...", caption="Twitter Image")
                     
                     st.caption("🎨 Image Prompt:")
-                    st.text_area(
-                        "Twitter image prompt",
-                        result.twitter.image_prompt,
-                        height=100,
-                        key="tw_img",
-                        label_visibility="collapsed"
-                    )
+                    st.text_area("Twitter image prompt", result.twitter.image_prompt, height=100, key="tw_img", label_visibility="collapsed")
                 
                 with col2:
                     st.markdown("**Tweet Text:**")
-                    tweet = st.text_area(
-                        "Tweet",
-                        result.twitter.tweet_text,
-                        height=100,
-                        key="tw_text",
-                        label_visibility="collapsed"
-                    )
+                    tweet = st.text_area("Tweet", result.twitter.tweet_text, height=100, key="tw_text", label_visibility="collapsed")
                     
                     char_count = len(tweet)
                     if char_count > 280:
                         st.error(f"⚠️ Tweet is {char_count - 280} characters too long!")
                     else:
                         st.success(f"✅ {280 - char_count} characters remaining")
-                    
-                    if st.button("📋 Copy Tweet"):
-                        st.success("Copied to clipboard!")
             
             # LinkedIn Tab
             with tab3:
@@ -394,45 +337,21 @@ if generate_button:
                             col1, col2 = st.columns([1, 2])
                             
                             with col1:
-                                # Use generated LinkedIn image if available
                                 linkedin_images = st.session_state.get('linkedin_images', [])
                                 if linkedin_images and idx <= len(linkedin_images):
-                                    st.image(linkedin_images[idx-1].url, 
-                                            caption=f"AI Generated LinkedIn Image {idx}")
+                                    st.image(linkedin_images[idx-1].url, caption=f"AI Generated LinkedIn Image {idx}")
                                 else:
-                                    st.image("https://via.placeholder.com/400x400?text=Generating...", 
-                                            caption=f"LinkedIn Image {idx}")
+                                    st.image("https://via.placeholder.com/400x400?text=Generating...", caption=f"LinkedIn Image {idx}")
                                 
                                 st.caption("🎨 Image Prompt:")
-                                st.text_area(
-                                    f"LinkedIn image prompt {idx}",
-                                    post.image_prompt,
-                                    height=80,
-                                    key=f"li_img_{idx}",
-                                    label_visibility="collapsed"
-                                )
+                                st.text_area(f"LinkedIn image prompt {idx}", post.image_prompt, height=80, key=f"li_img_{idx}", label_visibility="collapsed")
                             
                             with col2:
                                 st.markdown("**Post Text:**")
-                                post_text = st.text_area(
-                                    f"LinkedIn post {idx}",
-                                    post.post_text,
-                                    height=250,
-                                    key=f"li_text_{idx}",
-                                    label_visibility="collapsed"
-                                )
+                                st.text_area(f"LinkedIn post {idx}", post.post_text, height=250, key=f"li_text_{idx}", label_visibility="collapsed")
                         else:
                             st.markdown("**Post Text:**")
-                            post_text = st.text_area(
-                                f"LinkedIn post {idx}",
-                                post.post_text,
-                                height=250,
-                                key=f"li_text_only_{idx}",
-                                label_visibility="collapsed"
-                            )
-                        
-                        if st.button(f"📋 Copy Post", key=f"copy_li_{idx}"):
-                            st.success("Copied to clipboard!")
+                            st.text_area(f"LinkedIn post {idx}", post.post_text, height=250, key=f"li_text_only_{idx}", label_visibility="collapsed")
             
             # Summary
             st.markdown("---")
@@ -445,7 +364,6 @@ if generate_button:
             - **Total Content Pieces:** 7
             - **Brand Voice:** {brand_voice.title()}
             """)
-            st.markdown('</div>', unsafe_allow_html=True)
             
         except Exception as e:
             st.error(f"❌ Error generating content: {str(e)}")
@@ -455,42 +373,14 @@ else:
     # Welcome message
     st.markdown('<div class="info-box">', unsafe_allow_html=True)
     st.markdown("""
-    ### 👋 Welcome to the Social Media Content Generator!
+    ### 👋 Welcome to the Content Generator!
     
-    This tool helps you create professional social media content across multiple platforms:
-    
-    - 📸 **Instagram**: 3 unique variations with different angles
-    - 🐦 **Twitter**: Optimized 280-character posts
-    - 💼 **LinkedIn**: 3 professional variations
-    
-    **Features:**
-    - 🔍 AI-powered competitor research
-    - ✍️ Platform-specific content optimization
-    - 🎨 Detailed image prompts for AI generators
-    - 🎵 Optional audio generation (experimental)
-    - ✏️ Editable content for customization
+    This tool helps you create professional social media content across multiple platforms.
     
     **Get Started:**
     1. Fill in your company details in the sidebar
     2. Choose your brand voice
     3. Click "Generate Content"
     4. Review and edit the generated content
-    
-    Let's create amazing content! 🚀
     """)
     st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Example
-    with st.expander("💡 See Example Output"):
-        st.markdown("""
-        **Example Company:** TechFlow AI  
-        **Example Topic:** How AI is transforming customer service  
-        **Brand Voice:** Professional
-        
-        **What you'll get:**
-        - Competitor analysis of top 5 companies
-        - 3 Instagram posts (educational, inspirational, community-focused)
-        - 1 Twitter post with engaging copy
-        - 3 LinkedIn posts (thought leadership, industry insights, storytelling)
-        - All with detailed image prompts ready for DALL-E, Midjourney, etc.
-        """)
