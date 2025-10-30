@@ -1364,6 +1364,8 @@ dependencies = [
     { name = "deepagents" },
     { name = "langchain-openai" },
     { name = "pipelex" },
+    { name = "python-dotenv" },
+    { name = "replicate" },
     { name = "streamlit" },
 ]
 
@@ -1372,6 +1374,8 @@ requires-dist = [
     { name = "deepagents", specifier = ">=0.2.0" },
     { name = "langchain-openai", specifier = ">=1.0.1" },
     { name = "pipelex", specifier = ">=0.14.3" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "replicate", specifier = ">=0.25.0" },
     { name = "streamlit", specifier = ">=1.51.0" },
 ]
 
@@ -1823,6 +1827,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c7/ba/a6168f542ba73b151ed81237adf6b869c7b2f7f8d51618111296674e20ee/regex-2025.10.23-cp314-cp314t-win32.whl", hash = "sha256:1fa1186966b2621b1769fd467c7b22e317e6ba2d2cdcecc42ea3089ef04a8521", size = 274428, upload-time = "2025-10-21T15:57:37.996Z" },
     { url = "https://files.pythonhosted.org/packages/ef/a0/c84475e14a2829e9b0864ebf77c3f7da909df9d8acfe2bb540ff0072047c/regex-2025.10.23-cp314-cp314t-win_amd64.whl", hash = "sha256:08a15d40ce28362eac3e78e83d75475147869c1ff86bc93285f43b4f4431a741", size = 284140, upload-time = "2025-10-21T15:57:40.027Z" },
     { url = "https://files.pythonhosted.org/packages/51/33/6a08ade0eee5b8ba79386869fa6f77afeb835b60510f3525db987e2fffc4/regex-2025.10.23-cp314-cp314t-win_arm64.whl", hash = "sha256:a93e97338e1c8ea2649e130dcfbe8cd69bba5e1e163834752ab64dcb4de6d5ed", size = 274497, upload-time = "2025-10-21T15:57:42.389Z" },
+]
+
+[[package]]
+name = "replicate"
+version = "1.0.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/fd/caf6c59a6b8007366bd52ab5a320bf8d828f3860a60039309cfc0e375ec9/replicate-1.0.7.tar.gz", hash = "sha256:d88cb2c37ba39fb370c87fc3291601c67aae64bb918a20a85b5ce399c23ee84c", size = 62226, upload-time = "2025-05-27T11:29:08.111Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c2/5a/b3aa02a11a33de08e7771579154af3193decfb9d923b30b14c17b4e8bbce/replicate-1.0.7-py3-none-any.whl", hash = "sha256:667c50a9eb83be17de6278ff89483102b3b50f49a2c7fbcaa2e2b14df13816f9", size = 48626, upload-time = "2025-05-27T11:29:06.801Z" },
 ]
 
 [[package]]

@@ -1,7 +1,7 @@
 [project]
 name = "pipelex-hackathon"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered social media content generator with Pipelex and Streamlit"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -9,4 +9,6 @@ dependencies = [
     "langchain-openai>=1.0.1",
     "pipelex>=0.14.3",
     "streamlit>=1.51.0",
+    "replicate>=0.25.0",
+    "python-dotenv>=1.0.0",
 ]
